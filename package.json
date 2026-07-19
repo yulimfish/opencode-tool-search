@@ -1,0 +1,48 @@
+{
+  "name": "opencode-tool-search",
+  "version": "0.1.0",
+  "description": "Dynamic tool loading for opencode — Kimi K3 tool-search pattern, adapted to opencode's plugin runtime. Collapses noisy tool descriptions into a searchable catalog so the LLM only sees relevant tools per turn.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "tool-search",
+    "dynamic-tools",
+    "kimi-k3",
+    "llm-tools",
+    "mcp"
+  ],
+  "author": {
+    "name": "Yulimfish",
+    "email": "epeiuss@waterflames.cn"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yulimfish/opencode-tool-search.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Yulimfish/opencode-tool-search/issues"
+  },
+  "homepage": "https://github.com/Yulimfish/opencode-tool-search#readme",
+  "engines": {
+    "node": ">=20"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=0.4.0"
+  },
+  "peerDependenciesMeta": {
+    "@opencode-ai/plugin": {
+      "optional": true
+    }
+  }
+}

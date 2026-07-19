@@ -14,7 +14,7 @@
  */
 
 const STUB = (id) =>
-  `[hidden — call tool_search("${id.replace(/[_.]/g, " ")}") or a related keyword to reveal the full description and parameters]`;
+  `[hidden — call tool_search("${id.replace(/[_.]+/g, " ")}") or a related keyword to reveal the full description and parameters]`;
 
 export class Catalog {
   constructor({ hidePatterns = [], keepPatterns = [], userEntries = {} } = {}) {
@@ -106,13 +106,25 @@ export class Catalog {
  * Compile a wildcard-ish pattern into a RegExp.
  * Supports "*" (any-run) and "?" (single char); anything else is literal.
  * Prefix "re:" to pass a raw regex.
+ *
+ * Malformed patterns (bad regex source, wrong type) must never crash plugin
+ * init — we swallow the error, warn once, and return a never-match regex so
+ * the rest of the rule set still applies.
  */
 function compilePattern(p) {
   if (typeof p !== "string" || p.length === 0) return /^$/;
-  if (p.startsWith("re:")) return new RegExp(p.slice(3));
-  const escaped = p
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*/g, ".*")
-    .replace(/\?/g, ".");
-  return new RegExp(`^${escaped}$`);
+  try {
+    if (p.startsWith("re:")) return new RegExp(p.slice(3));
+    const escaped = p
+      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+      .replace(/\*/g, ".*")
+      .replace(/\?/g, ".");
+    return new RegExp(`^${escaped}$`);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[opencode-tool-search] invalid pattern ${JSON.stringify(p)}: ${err.message}`,
+    );
+    return /(?!)/; // matches nothing
+  }
 }

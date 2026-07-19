@@ -1,6 +1,6 @@
 {
   "name": "opencode-tool-search",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dynamic tool loading for opencode — Kimi K3 tool-search pattern, adapted to opencode's plugin runtime. Collapses noisy tool descriptions into a searchable catalog so the LLM only sees relevant tools per turn.",
   "type": "module",
   "main": "src/index.js",

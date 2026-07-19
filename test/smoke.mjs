@@ -87,4 +87,26 @@ import { rankTools, scoreTool } from "../src/match.js";
   assert.equal(c.isCollapsed("tool_search"), false);
 }
 
+// ---- malformed patterns do not crash init and are isolated ----
+{
+  // Silence expected console.warn for this block.
+  const origWarn = console.warn;
+  const warnings = [];
+  console.warn = (...args) => warnings.push(args.join(" "));
+  try {
+    const c = new Catalog({
+      hidePatterns: ["re:[[", "mcp_*", "re:(unclosed"],
+    });
+    c.upsert("mcp_foo", "d", {});
+    c.upsert("bash", "d", {});
+    // The valid mcp_* pattern still hides mcp_foo despite two broken siblings.
+    assert.equal(c.isCollapsed("mcp_foo"), true);
+    assert.equal(c.isCollapsed("bash"), false);
+    // We warned about each malformed pattern.
+    assert.ok(warnings.length >= 2, `expected >=2 warnings, got ${warnings.length}`);
+  } finally {
+    console.warn = origWarn;
+  }
+}
+
 console.log("smoke: all tests passed");

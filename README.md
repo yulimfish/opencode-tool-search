@@ -1,7 +1,11 @@
-# opencode-tool-search
+# @yulimfish/opencode-tool-search
 
 > Dynamic tool loading for [opencode](https://opencode.ai), inspired by the
 > [Kimi K3 tool-search pattern](https://platform.kimi.com/docs/guide/use-dynamic-tool-loading).
+
+> Note on the name: the unscoped `opencode-tool-search` package on npm belongs
+> to another author with a different implementation. This project publishes
+> under `@yulimfish/opencode-tool-search` to keep the namespaces distinct.
 
 When a session accumulates dozens of tools (built-ins + MCP servers + custom
 plugins), every request pays for the full `tools[]` catalog. The model also
@@ -32,14 +36,14 @@ Same effect, different plumbing.
 ## Install
 
 ```bash
-npm i -g opencode-tool-search  # or per-project
+npm i -g @yulimfish/opencode-tool-search  # or per-project
 ```
 
 Add to your `~/.config/opencode/opencode.jsonc`:
 
 ```jsonc
 {
-  "plugin": ["opencode-tool-search"]
+  "plugin": ["@yulimfish/opencode-tool-search"]
 }
 ```
 
@@ -55,7 +59,7 @@ JSON file for scalar fields; the `tools` map is merged.
 ```jsonc
 {
   "plugin": [
-    ["opencode-tool-search", {
+    ["@yulimfish/opencode-tool-search", {
       "hide": ["mcp_*", "figma_*", "yuque_*"],
       "keep": ["mcp_critical_tool"],
       "topK": 6,

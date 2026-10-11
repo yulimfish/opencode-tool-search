@@ -3,6 +3,8 @@
 > 为 [opencode](https://opencode.ai) 提供动态工具加载能力，设计灵感来自
 > [Kimi K3 的工具搜索模式](https://platform.kimi.com/docs/guide/use-dynamic-tool-loading)。
 
+> **状态：已归档，暂停维护，不建议启用。** 工作流安装器不再安装此插件；目前可优先使用 OpenChamber 内置的 Code Mode。
+
 > 关于名称：npm 上不带 scope 的 `opencode-tool-search` 包属于另一位作者，且实现不同。
 > 本项目使用 `@yulimfish/opencode-tool-search` 发布，以区分两者的命名空间。
 
@@ -90,33 +92,26 @@ npm i -g @yulimfish/opencode-tool-search  # 也可安装到项目中
 
 ## 选项参考
 
-| 字段               | 类型       | 默认值              | 说明 |
+| 字段 | 类型 | 默认值 | 说明 |
 |--------------------|------------|---------------------|---------|
-| `enabled`          | boolean    | `true`              | 总开关。 |
-| `hide`             | string[]   | `["mcp_*","mcp__*"]` | 要折叠的工具通配模式。`*` 匹配任意长度字符，`?` 匹配单个字符，`re:...` 表示原始正则表达式。 |
-| `keep`             | string[]   | `[]`                | 强制保持可见的模式，优先级高于 `hide`。（`tool_search` 始终保持可见。） |
-| `topK`             | number     | `5`                 | 每次搜索返回的最多结果数。 |
-| `descriptionLimit` | number     | `600`               | 描述截断前允许的最大字符数。 |
-| `injectSystemHint` | boolean    | `true`              | 是否在系统提示中追加一段说明，告知模型可以使用 `tool_search`。 |
-| `tools`            | object     | `{}`                | 单个工具的覆盖配置：`{ toolId: { tags?: string[], description?: string } }`。标签会加入搜索索引；自定义描述会替换提供给模型的描述。 |
+| `enabled` | boolean | `true` | 总开关。 |
+| `hide` | string[] | `["mcp_*","mcp__*"]` | 要折叠的工具 ID 匹配模式。`*` 匹配任意长度字符，`?` 匹配单个字符，`re:...` 表示原始正则表达式。 |
+| `keep` | string[] | `[]` | 强制保持完整显示的匹配模式，优先于 `hide`。`tool_search` 始终保持可见。 |
+| `topK` | number | `5` | 每次搜索返回的结果上限。 |
+| `descriptionLimit` | number | `600` | 每条工具描述截断前的最大字符数。 |
+| `injectSystemHint` | boolean | `true` | 是否在系统提示中附加文字，告知模型 `tool_search` 的存在。 |
+| `tools` | object | `{}` | 单工具覆盖项：`{ toolId: { tags?: string[], description?: string } }`。标签用于搜索索引；自定义描述会替换提供给模型的描述。 |
 
 ## 运行时行为
 
-1. **每次请求**——对于 opencode 准备发送给 LLM 的每个工具，我们都会触发
-   `tool.definition` 钩子。如果工具匹配 `hide` 且本会话中尚未激活，就将其描述替换为
-   `[已隐藏 — 调用 tool_search(…) 查看]`。参数 schema 保持不变（模型有把握时仍可直接调用，
-   无需额外往返）。
-2. **模型调用 `tool_search`**——根据名称、标签和描述的重合度排序，返回排名前 K 的工具及其
-   完整描述和参数，并将这些结果标记为已激活，在本会话剩余时间内保持可见。
-3. **模型调用任意工具**——通过 `tool.execute.after` 自动激活该工具，后续轮次无需再次搜索即可
-   获取完整描述。
-4. **系统提示**——通过 `experimental.chat.system.transform` 追加一条简短提示，说明当前折叠了
-   多少个工具。
+1. **每次请求** —— opencode 准备发送给 LLM 的每个工具都会经过 `tool.definition` hook。若工具匹配 `hide` 且本会话中尚未激活，插件会将其描述替换为隐藏提示（例如：`[hidden — call tool_search("<工具名称或相关关键词>") or a related keyword to reveal the full description and parameters]`）。参数 schema 保持不变；模型仍可在确信时直接调用该工具，无需额外搜索一轮。
+2. **模型调用 `tool_search`** —— 插件按名称、标签和描述与查询词的匹配程度排序，返回排名前 K 的工具及其完整描述和参数，并将结果标记为本会话已激活。
+3. **模型调用任意工具** —— 插件通过 `tool.execute.after` 自动激活该工具，因此后续轮次会显示完整描述，无需再次搜索。
+4. **系统提示** —— 插件通过 `experimental.chat.system.transform` 附加简短提示，说明当前折叠了多少个工具。
 
-## 验证是否生效
+## 验证
 
-重启后，向模型提出一个需要使用已隐藏 MCP 工具的请求。模型应该先调用 `tool_search`。
-日志中会出现：
+重启后，向模型提出一个需要使用已折叠 MCP 工具的请求。模型应先调用 `tool_search`。日志中应能看到：
 
 ```
 [tool-search] plugin initialized
@@ -126,7 +121,7 @@ npm i -g @yulimfish/opencode-tool-search  # 也可安装到项目中
 也可以手动测试：
 
 ```
-> 使用 tool_search 查找与“figma”相关的工具
+> 用 tool_search 查找与“figma”相关的工具
 ```
 
 ## 设计说明
@@ -140,4 +135,4 @@ npm i -g @yulimfish/opencode-tool-search  # 也可安装到项目中
 
 ## 许可证
 
-MIT © Yulimfish · contact: `epeiuss@waterflames.cn`
+MIT © Yulimfish · 联系方式：`epeiuss@waterflames.cn`
